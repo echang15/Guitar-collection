@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="stats">
+  <div class="stat"><span class="stat-num">{{ stats.current or 0 }}</span><span class="stat-label">Current</span></div>
+  <div class="stat"><span class="stat-num">{{ stats.archived or 0 }}</span><span class="stat-label">Archived</span></div>
+  <div class="stat"><span class="stat-num">{{ stats.cost | money or "—" }}</span><span class="stat-label">Paid (current)</span></div>
+  <div class="stat"><span class="stat-num">{{ stats.value | money or "—" }}</span><span class="stat-label">Est. value (current)</span></div>
+</section>
+
+<form class="filters" method="get" action="/">
+  <input type="search" name="q" value="{{ filters.q }}" placeholder="Search brand, model, serial, notes…" class="grow">
+  <select name="status">
+    <option value="current" {{ "selected" if filters.status == "current" }}>Current</option>
+    <option value="archived" {{ "selected" if filters.status == "archived" }}>Archived</option>
+    <option value="all" {{ "selected" if filters.status == "all" }}>All</option>
+  </select>
+  <select name="type">
+    <option value="">All types</option>
+    {% for t in CHOICES.guitar_type %}<option {{ "selected" if filters.type == t }}>{{ t }}</option>{% endfor %}
+  </select>
+  <select name="brand">
+    <option value="">All brands</option>
+    {% for b in brands %}<option {{ "selected" if filters.brand|lower == b|lower }}>{{ b }}</option>{% endfor %}
+  </select>
+  <select name="sort">
+    {% for key, label in [("brand","Brand A–Z"),("year","Year (oldest)"),("year_desc","Year (newest)"),("newest","Recently added"),("value","Value")] %}
+    <option value="{{ key }}" {{ "selected" if filters.sort == key }}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <input type="hidden" name="view" value="{{ filters.view }}">
+  <button class="btn" type="submit">Filter</button>
+  <div class="view-toggle">
+    {% set qs = "q=" ~ filters.q|urlencode ~ "&status=" ~ filters.status ~ "&type=" ~ filters.type|urlencode ~ "&brand=" ~ filters.brand|urlencode ~ "&sort=" ~ filters.sort %}
+    <a href="/?{{ qs }}&view=grid" class="{{ 'active' if filters.view == 'grid' }}" title="Grid view">▦</a>
+    <a href="/?{{ qs }}&view=table" class="{{ 'active' if filters.view == 'table' }}" title="Table view">☰</a>
+  </div>
+</form>
+
+<p class="muted">{{ guitars|length }} guitar{{ "" if guitars|length == 1 else "s" }} · <a href="/export.csv">Export CSV</a></p>
+
+{% if not guitars %}
+  <div class="empty">
+    <p>No guitars found.</p>
+    <a class="btn btn-primary" href="/guitars/new">Add your first guitar</a>
+  </div>
+{% elif filters.view == "table" %}
+  <div class="table-wrap">
+  <table class="list">
+    <thead><tr><th></th><th>Year</th><th>Brand</th><th>Model</th><th>Type</th><th>Finish</th><th>Serial</th><th>Value</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for g in guitars %}
+      <tr onclick="location.href='/guitars/{{ g.id }}'">
+        <td class="thumb-cell">{% if g.photo %}<img src="/thumbs/{{ thumb_name(g.photo) }}" alt="" loading="lazy">{% endif %}</td>
+        <td>{{ g.year or "" }}</td>
+        <td>{{ g.brand }}</td>
+        <td><a href="/guitars/{{ g.id }}">{{ g.model }}</a></td>
+        <td>{{ g.guitar_type or "" }}</td>
+        <td>{{ g.finish or "" }}</td>
+        <td class="mono">{{ g.serial_number or "" }}</td>
+        <td>{{ g.estimated_value | money }}</td>
+        <td><span class="badge badge-{{ g.status }}">{{ g.status }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+{% else %}
+  <div class="grid">
+  {% for g in guitars %}
+    <a class="card" href="/guitars/{{ g.id }}">
+      <div class="card-img">
+        {% if g.photo %}<img src="/thumbs/{{ thumb_name(g.photo) }}" alt="{{ g.brand }} {{ g.model }}" loading="lazy">
+        {% else %}<div class="no-photo">🎸</div>{% endif %}
+        {% if g.status == "archived" %}<span class="badge badge-archived corner">archived</span>{% endif %}
+      </div>
+      <div class="card-body">
+        <div class="card-title">{{ g.brand }} {{ g.model }}</div>
+        <div class="card-sub">{{ [g.year, g.finish, g.guitar_type]|select|join(" · ") }}</div>
+      </div>
+    </a>
+  {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,21 @@
+services:
+  guitars:
+    build: .
+    image: guitar-collection:latest
+    container_name: guitar-collection
+    restart: unless-stopped
+    ports:
+      - "8765:8000"
+    volumes:
+      # On a Synology NAS, point this at a shared folder, e.g.
+      # /volume1/docker/guitar-collection:/data
+      - ./data:/data
+    environment:
+      - TZ=America/Los_Angeles
+      # Uncomment to require a login (HTTP Basic auth):
+      # - APP_USERNAME=admin
+      # - APP_PASSWORD=change-me
+      - MAX_UPLOAD_MB=25
+    # Optional: run as your NAS user so files in the shared folder are owned by you.
+    # Find your IDs via SSH with `id <username>` (often 1026:100 on Synology).
+    # user: "1026:100"

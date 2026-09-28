@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit" if guitar_id else "Add" }} guitar · Guitar Collection{% endblock %}
+
+{% macro field(name, wide=False) %}
+  {% set label, kind = FIELD_MAP[name] %}
+  {% set value = guitar.get(name) %}
+  <label class="field {{ 'wide' if wide or kind == 'textarea' }}">
+    <span>{{ label }}{% if name in ("brand", "model") %} <em>*</em>{% endif %}</span>
+    {% if kind == "select" %}
+      <select name="{{ name }}" id="f-{{ name }}">
+        {% if name not in ("status", "handedness") %}<option value=""></option>{% endif %}
+        {% for opt in CHOICES[name] %}
+          <option value="{{ opt }}" {{ "selected" if value == opt }}>{{ opt|capitalize if name == "status" else opt }}</option>
+        {% endfor %}
+      </select>
+    {% elif kind == "textarea" %}
+      <textarea name="{{ name }}" rows="3">{{ value if value is not none else "" }}</textarea>
+    {% elif kind == "money" %}
+      <input name="{{ name }}" inputmode="decimal" placeholder="$" value="{{ value if value is not none else '' }}">
+    {% elif kind == "number" %}
+      <input type="number" name="{{ name }}" value="{{ value if value is not none else '' }}"
+             {% if name == "year" %}min="1800" max="2100" placeholder="e.g. 1965"{% else %}min="1" max="18"{% endif %}>
+    {% else %}
+      <input type="{{ kind }}" name="{{ name }}" value="{{ value if value is not none else '' }}"
+             {% if suggestions.get(name) %}list="dl-{{ name }}"{% endif %}
+             {% if name in ("brand", "model") %}required{% endif %} autocomplete="off">
+      {% if suggestions.get(name) %}
+        <datalist id="dl-{{ name }}">{% for s in suggestions[name] %}<option value="{{ s }}">{% endfor %}</datalist>
+      {% endif %}
+    {% endif %}
+  </label>
+{% endmacro %}
+
+{% block content %}
+<a class="back" href="{{ '/guitars/%d' % guitar_id if guitar_id else '/' }}">← Cancel</a>
+<h1>{{ "Edit guitar" if guitar_id else "Add a guitar" }}</h1>
+
+{% if errors %}
+<div class="alert"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+{% endif %}
+
+<form class="guitar-form" method="post" action="{{ '/guitars/%d' % guitar_id if guitar_id else '/guitars' }}" enctype="multipart/form-data">
+  <fieldset>
+    <legend>Basics</legend>
+    <div class="fields">
+      {{ field("brand") }}{{ field("model") }}{{ field("year") }}{{ field("guitar_type") }}
+      {{ field("serial_number") }}{{ field("finish") }}{{ field("body_style") }}{{ field("country") }}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Specs</legend>
+    <div class="fields">
+      {{ field("num_strings") }}{{ field("handedness") }}{{ field("scale_length") }}{{ field("weight") }}
+      {{ field("body_wood") }}{{ field("top_wood") }}{{ field("neck_wood") }}{{ field("fretboard_wood") }}
+      {{ field("pickups", wide=True) }}{{ field("bridge", wide=True) }}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Condition &amp; storage</legend>
+    <div class="fields">
+      {{ field("condition") }}{{ field("case_type") }}{{ field("storage_location") }}
+      {{ field("modifications") }}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Purchase &amp; value</legend>
+    <div class="fields">
+      {{ field("purchase_date") }}{{ field("purchase_price") }}{{ field("purchased_from") }}{{ field("estimated_value") }}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Notes</legend>
+    <div class="fields">{{ field("notes") }}</div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Status</legend>
+    <div class="fields">
+      {{ field("status") }}
+      <div class="archive-fields fields-inline" id="archive-fields">
+        {{ field("archived_date") }}{{ field("archive_reason") }}{{ field("archive_notes") }}
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{ "Add more photos" if guitar_id else "Photos" }}</legend>
+    <label class="dropzone">
+      <input type="file" name="photos" accept="image/*,.heic,.heif" multiple>
+      <span>Drop photos here or click to choose</span>
+    </label>
+  </fieldset>
+
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">{{ "Save changes" if guitar_id else "Add guitar" }}</button>
+    <a class="btn" href="{{ '/guitars/%d' % guitar_id if guitar_id else '/' }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

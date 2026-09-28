@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ guitar.brand }} {{ guitar.model }} · Guitar Collection{% endblock %}
+{% block content %}
+<a class="back" href="/?status={{ guitar.status }}">← Back to {{ guitar.status }}</a>
+
+<div class="detail-head">
+  <div>
+    <h1>{{ guitar.year or "" }} {{ guitar.brand }} {{ guitar.model }}</h1>
+    <p class="muted">
+      <span class="badge badge-{{ guitar.status }}">{{ guitar.status }}</span>
+      {{ [guitar.guitar_type, guitar.finish]|select|join(" · ") }}
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn" href="/guitars/{{ guitar.id }}/edit">Edit</a>
+    {% if guitar.status == "current" %}
+      <form method="post" action="/guitars/{{ guitar.id }}/archive"><button class="btn">Move to archive</button></form>
+    {% else %}
+      <form method="post" action="/guitars/{{ guitar.id }}/restore"><button class="btn">Restore to current</button></form>
+    {% endif %}
+    <form method="post" action="/guitars/{{ guitar.id }}/delete" data-confirm="Permanently delete this guitar and all its photos? (Use Archive to keep a record.)">
+      <button class="btn btn-danger">Delete</button>
+    </form>
+  </div>
+</div>
+
+{% if photo_error %}<div class="alert">Some files couldn't be saved — make sure they are images (JPEG, PNG, HEIC, WebP…).</div>{% endif %}
+
+<div class="detail">
+  <section class="gallery">
+    {% if photos %}
+      {% set main = photos[0] %}
+      <a href="/photos/{{ main.filename }}" target="_blank" class="main-photo" id="main-photo-link">
+        <img id="main-photo" src="/photos/{{ main.filename }}" alt="{{ main.caption or '' }}">
+      </a>
+      <p class="caption" id="main-caption">{{ main.caption or "" }}</p>
+      <div class="thumbs">
+        {% for p in photos %}
+        <div class="thumb {{ 'is-primary' if p.is_primary }}">
+          <img src="/thumbs/{{ thumb_name(p.filename) }}" alt="{{ p.caption or '' }}" loading="lazy"
+               data-full="/photos/{{ p.filename }}" data-caption="{{ p.caption or '' }}">
+          <details class="thumb-menu">
+            <summary title="Photo options">⋯</summary>
+            <div class="menu">
+              <form method="post" action="/photo/{{ p.id }}/caption">
+                <input name="caption" value="{{ p.caption or '' }}" placeholder="Caption">
+                <button class="btn btn-sm">Save</button>
+              </form>
+              {% if not p.is_primary %}
+              <form method="post" action="/photo/{{ p.id }}/primary"><button class="btn btn-sm">Set as main photo</button></form>
+              {% endif %}
+              <form method="post" action="/photo/{{ p.id }}/delete" data-confirm="Delete this photo?"><button class="btn btn-sm btn-danger">Delete photo</button></form>
+            </div>
+          </details>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="no-photo big">🎸<br><span>No photos yet</span></div>
+    {% endif %}
+    <form class="upload" method="post" action="/guitars/{{ guitar.id }}/photos" enctype="multipart/form-data">
+      <label class="dropzone">
+        <input type="file" name="photos" accept="image/*,.heic,.heif" multiple>
+        <span>Drop photos here or click to choose</span>
+      </label>
+      <button class="btn btn-primary" type="submit">Upload</button>
+    </form>
+  </section>
+
+  <section class="specs">
+    {% set skip = ["brand", "model", "status", "notes", "modifications", "archive_notes", "archived_date", "archive_reason"] %}
+    <dl>
+      {% for name, label, kind in FIELDS if name not in skip and guitar[name] not in (None, "") %}
+        <dt>{{ label }}</dt>
+        <dd class="{{ 'mono' if name == 'serial_number' }}">{{ guitar[name] | money if kind == "money" else guitar[name] }}</dd>
+      {% endfor %}
+    </dl>
+    {% if guitar.modifications %}<h3>Modifications</h3><p class="prewrap">{{ guitar.modifications }}</p>{% endif %}
+    {% if guitar.notes %}<h3>Notes</h3><p class="prewrap">{{ guitar.notes }}</p>{% endif %}
+    {% if guitar.status == "archived" %}
+      <div class="archive-box">
+        <h3>Archived</h3>
+        <dl>
+          {% if guitar.archived_date %}<dt>Date</dt><dd>{{ guitar.archived_date }}</dd>{% endif %}
+          {% if guitar.archive_reason %}<dt>Reason</dt><dd>{{ guitar.archive_reason }}</dd>{% endif %}
+        </dl>
+        {% if guitar.archive_notes %}<p class="prewrap">{{ guitar.archive_notes }}</p>{% endif %}
+      </div>
+    {% endif %}
+    <p class="muted small">Added {{ guitar.created_at }} UTC · Updated {{ guitar.updated_at }} UTC</p>
+  </section>
+</div>
+{% endblock %}
