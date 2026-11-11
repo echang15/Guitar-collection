@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="stats">
-  <div class="stat"><span class="stat-num">{{ stats.current or 0 }}</span><span class="stat-label">Current</span></div>
-  <div class="stat"><span class="stat-num">{{ stats.archived or 0 }}</span><span class="stat-label">Archived</span></div>
-  <div class="stat"><span class="stat-num">{{ stats.cost | money or "—" }}</span><span class="stat-label">Paid (current)</span></div>
-  <div class="stat"><span class="stat-num">{{ stats.value | money or "—" }}</span><span class="stat-label">Est. value (current)</span></div>
+<section class="hero">
+  <div class="hero-text">
+    <p class="eyebrow">{{ "The Archive" if filters.status == "archived" else "Showroom" }}</p>
+    <h1 class="display">{{ "Past Instruments" if filters.status == "archived" else "The Collection" }}</h1>
+    <p class="lede">{{ guitars|length }} instrument{{ "" if guitars|length == 1 else "s" }} on display</p>
+  </div>
+  <div class="stats">
+    <div class="stat"><span class="stat-label">Current</span><span class="stat-num">{{ stats.current or 0 }}</span></div>
+    <div class="stat"><span class="stat-label">Archived</span><span class="stat-num">{{ stats.archived or 0 }}</span></div>
+    <div class="stat"><span class="stat-label">Paid (current)</span><span class="stat-num">{{ stats.cost | money or "—" }}</span></div>
+    <div class="stat stat-accent"><span class="stat-label">Est. value (current)</span><span class="stat-num">{{ stats.value | money or "—" }}</span></div>
+  </div>
 </section>
 
 <form class="filters" method="get" action="/">
@@ -36,7 +43,10 @@
   </div>
 </form>
 
-<p class="muted">{{ guitars|length }} guitar{{ "" if guitars|length == 1 else "s" }} · <a href="/export.csv">Export CSV</a></p>
+<div class="list-meta">
+  <span>{{ guitars|length }} guitar{{ "" if guitars|length == 1 else "s" }}</span>
+  <a href="/export.csv">Export CSV</a>
+</div>
 
 {% if not guitars %}
   <div class="empty">
@@ -67,15 +77,20 @@
 {% else %}
   <div class="grid">
   {% for g in guitars %}
-    <a class="card" href="/guitars/{{ g.id }}">
+    <a class="card" href="/guitars/{{ g.id }}" style="--i: {{ loop.index0 if loop.index0 < 24 else 24 }}">
       <div class="card-img">
         {% if g.photo %}<img src="/thumbs/{{ thumb_name(g.photo) }}" alt="{{ g.brand }} {{ g.model }}" loading="lazy">
         {% else %}<div class="no-photo">🎸</div>{% endif %}
         {% if g.status == "archived" %}<span class="badge badge-archived corner">archived</span>{% endif %}
+        {% if g.photo_count > 1 %}<span class="chip-count" title="{{ g.photo_count }} photos">◫ {{ g.photo_count }}</span>{% endif %}
       </div>
       <div class="card-body">
-        <div class="card-title">{{ g.brand }} {{ g.model }}</div>
-        <div class="card-sub">{{ [g.year, g.finish, g.guitar_type]|select|join(" · ") }}</div>
+        <div class="card-brand">{{ g.brand }}</div>
+        <div class="card-title">{{ g.model }}</div>
+        <div class="card-foot">
+          <span class="card-sub">{{ [g.year, g.finish, g.guitar_type]|select|join(" · ") }}</span>
+          {% if g.estimated_value %}<span class="price-tag">{{ g.estimated_value | money }}</span>{% endif %}
+        </div>
       </div>
     </a>
   {% endfor %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block idle %}0{% endblock %}
 {% block title %}{{ "Edit" if guitar_id else "Add" }} guitar · Guitar Collection{% endblock %}
 
 {% macro field(name, wide=False) %}

@@ -176,3 +176,30 @@ def test_basic_auth(client, monkeypatch):
     assert client.get("/healthz").status_code == 200
     assert client.get("/", auth=("admin", "wrong")).status_code == 401
     assert client.get("/", auth=("admin", "secret")).status_code == 200
+
+
+def test_gallery_api(client):
+    assert client.get("/api/gallery").json() == []
+    gid = add_guitar(client, finish="Sunburst")
+    client.post(f"/guitars/{gid}/photos",
+                files=[("photos", ("a.jpg", jpeg_bytes("red"), "image/jpeg")),
+                       ("photos", ("b.jpg", jpeg_bytes("blue"), "image/jpeg"))])
+    other = add_guitar(client, brand="Gibson", model="SG", status="archived")
+    client.post(f"/guitars/{other}/photos",
+                files=[("photos", ("c.jpg", jpeg_bytes("green"), "image/jpeg"))])
+    items = client.get("/api/gallery").json()
+    assert len(items) == 3
+    assert [i["status"] for i in items] == ["current", "current", "archived"]
+    first = items[0]
+    assert first["brand"] == "Fender" and first["model"] == "Stratocaster"
+    assert first["details"] == "1965 · Sunburst · Electric"
+    assert client.get(first["src"]).status_code == 200
+    assert client.get(first["thumb"]).status_code == 200
+
+
+def test_screensaver_idle_setting(client):
+    page = client.get("/").text
+    assert 'id="screensaver"' in page and 'id="showcase-start"' in page
+    assert 'data-idle="120"' in page
+    # The add/edit form never auto-starts the screensaver.
+    assert 'data-idle="0"' in client.get("/guitars/new").text

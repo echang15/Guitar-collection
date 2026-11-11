@@ -41,7 +41,8 @@ app.mount("/thumbs", StaticFiles(directory=config.THUMB_DIR), name="thumbs")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 templates.env.globals.update(FIELDS=db.FIELDS, CHOICES=db.CHOICES,
                              FIELD_MAP={n: (label, kind) for n, label, kind in db.FIELDS},
-                             thumb_name=images.thumb_name)
+                             thumb_name=images.thumb_name,
+                             SCREENSAVER_IDLE_SECONDS=config.SCREENSAVER_IDLE_SECONDS)
 
 
 def money(value):
@@ -347,6 +348,27 @@ def delete_photo(photo_id: int):
                 (photo["guitar_id"],))
     images.delete_files(photo["filename"])
     return redirect(f"/guitars/{photo['guitar_id']}")
+
+
+@app.get("/api/gallery")
+def gallery():
+    """Every photo in the collection, for the showroom screensaver."""
+    with db.get_conn() as conn:
+        rows = conn.execute(
+            "SELECT p.filename, p.caption, g.id AS guitar_id, g.brand, g.model, g.year,"
+            " g.finish, g.guitar_type, g.status FROM photos p JOIN guitars g ON g.id = p.guitar_id"
+            " ORDER BY g.status = 'archived', g.brand COLLATE NOCASE, g.model COLLATE NOCASE,"
+            " p.is_primary DESC, p.sort_order, p.id").fetchall()
+    return [{
+        "src": f"/photos/{r['filename']}",
+        "thumb": f"/thumbs/{images.thumb_name(r['filename'])}",
+        "caption": r["caption"] or "",
+        "guitar_id": r["guitar_id"],
+        "brand": r["brand"] or "",
+        "model": r["model"] or "",
+        "details": " · ".join(str(v) for v in (r["year"], r["finish"], r["guitar_type"]) if v),
+        "status": r["status"],
+    } for r in rows]
 
 
 @app.get("/export.csv")

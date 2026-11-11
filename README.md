@@ -10,10 +10,12 @@ It's one Docker container. Everything is stored in one data folder: a SQLite dat
 - **Photos**: upload several at once, or drag and drop. iPhone HEIC photos are converted to JPEG automatically. Thumbnails are generated for fast browsing. You can pick the main photo, add captions and delete photos.
 - **Current / Archive**: archive a guitar with one click, or set the status in the form. You can record the date, a reason (Sold, Traded, Gifted…) and notes such as the buyer and price. Archived guitars stay in the database and can be restored.
 - **Browse**: grid or table view, search (brand, model, serial, notes…), filters by status, type and brand, and sorting by brand, year, date added or value.
+- **Showroom look**: a dark, spotlit dashboard styled like a retail display, with large product cards, brand labels and price tags.
+- **Showcase screensaver**: after 2 minutes idle (configurable), a full-screen slideshow of every photo in the collection starts, with slow zoom/crossfade and each guitar's brand, model and details. Moving the mouse, touching, clicking or pressing a key exits. You can also start it any time with the **▶ Showcase** button, which goes full-screen. It doesn't start on its own while you're on the add/edit form.
 - **Totals**: counts of current and archived guitars, plus total paid and total estimated value for the current collection.
 - **CSV export** of the whole collection.
 - Autocomplete on fields such as brand, finish and woods, based on what you've entered before.
-- Works on a phone. Follows the device's light or dark mode.
+- Works on a phone.
 - Optional password (HTTP Basic auth).
 
 ## Running on a Synology NAS
@@ -57,6 +59,7 @@ data/
 | `APP_PASSWORD` | *(empty = no login)* | Turns on HTTP Basic auth |
 | `APP_USERNAME` | `admin` | Username for Basic auth |
 | `MAX_UPLOAD_MB` | `25` | Maximum size per photo |
+| `SCREENSAVER_IDLE_SECONDS` | `120` | Seconds idle before the photo showcase starts (`0` = only start it manually) |
 
 ## Running locally (development)
 

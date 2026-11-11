@@ -16,6 +16,8 @@ services:
       # - APP_USERNAME=admin
       # - APP_PASSWORD=change-me
       - MAX_UPLOAD_MB=25
+      # Seconds idle before the photo showcase screensaver starts (0 = manual only).
+      - SCREENSAVER_IDLE_SECONDS=120
     # Optional: run as your NAS user so files in the shared folder are owned by you.
     # Find your IDs via SSH with `id <username>` (often 1026:100 on Synology).
     # user: "1026:100"

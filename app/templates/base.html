@@ -3,22 +3,48 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0b0d">
   <title>{% block title %}Guitar Collection{% endblock %}</title>
   <link rel="stylesheet" href="/static/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎸</text></svg>">
 </head>
-<body>
+<body data-idle="{% block idle %}{{ SCREENSAVER_IDLE_SECONDS }}{% endblock %}">
   <header class="topbar">
-    <a class="logo" href="/">🎸 Guitar Collection</a>
+    <a class="logo" href="/"><span class="logo-mark">🎸</span><span class="logo-text">Guitar <b>Collection</b></span></a>
     <nav>
       <a href="/?status=current">Current</a>
       <a href="/?status=archived">Archive</a>
+      <button type="button" class="btn btn-ghost" id="showcase-start" title="Start the photo showcase">▶ Showcase</button>
       <a class="btn btn-primary" href="/guitars/new">+ Add guitar</a>
     </nav>
   </header>
   <main>
     {% block content %}{% endblock %}
   </main>
+
+  <div class="screensaver" id="screensaver" hidden aria-hidden="true">
+    <div class="ss-slide" data-slot="0"><div class="ss-backdrop"></div><img alt=""></div>
+    <div class="ss-slide" data-slot="1"><div class="ss-backdrop"></div><img alt=""></div>
+    <div class="ss-vignette"></div>
+    <div class="ss-top">
+      <span class="ss-brandmark">🎸 Guitar <b>Collection</b></span>
+      <span class="ss-clock" id="ss-clock"></span>
+    </div>
+    <div class="ss-info" id="ss-info">
+      <div class="ss-eyebrow" id="ss-brand"></div>
+      <div class="ss-title" id="ss-model"></div>
+      <div class="ss-details" id="ss-details"></div>
+      <div class="ss-caption" id="ss-caption"></div>
+    </div>
+    <div class="ss-empty" id="ss-empty" hidden>
+      <div class="ss-empty-mark">🎸</div>
+      <div class="ss-title">The Collection</div>
+      <div class="ss-details">Add photos to fill the showcase</div>
+    </div>
+    <div class="ss-hint">Move the mouse or touch to exit</div>
+    <div class="ss-progress"><span id="ss-progress"></span></div>
+  </div>
+
   <script src="/static/app.js"></script>
 </body>
 </html>

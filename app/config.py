@@ -13,6 +13,10 @@ APP_PASSWORD = os.environ.get("APP_PASSWORD", "")
 MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "25"))
 THUMB_SIZE = (600, 600)
 
+# Showroom screensaver: seconds of inactivity before the photo gallery starts.
+# Set to 0 to disable the automatic start (the "Showcase" button still works).
+SCREENSAVER_IDLE_SECONDS = int(os.environ.get("SCREENSAVER_IDLE_SECONDS", "120"))
+
 
 def ensure_dirs() -> None:
     for d in (DATA_DIR, PHOTO_DIR, THUMB_DIR):
